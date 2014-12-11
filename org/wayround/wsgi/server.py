@@ -39,16 +39,16 @@ class WSGIHTTPSession:
         input_ = self._http_request.sock.makefile('br')
 
         ret = {
-            'REQUEST_METHOD': self._http_request.method,
+            'REQUEST_METHOD': str(self._http_request.method, 'utf-8'),
             'SCRIPT_NAME': '',  # TODO
-            'PATH_INFO': parsed_requesttarget.path,
-            'QUERY_STRING': parsed_requesttarget.query,
+            'PATH_INFO': str(parsed_requesttarget.path, 'utf-8'),
+            'QUERY_STRING': str(parsed_requesttarget.query, 'utf-8'),
             'CONTENT_TYPE': '',  # TODO
             'SERVER_NAME': hostname,
             'SERVER_PORT': hostport,
-            'SERVER_PROTOCOL': self._http_request.httpversion,
+            'SERVER_PROTOCOL': str(self._http_request.httpversion, 'utf-8'),
             'wsgi.version': (1, 0),
-            'wsgi.url_scheme': parsed_requesttarget.scheme,
+            'wsgi.url_scheme': str(parsed_requesttarget.scheme, 'utf-8'),
             'wsgi.input': input_,
             'wsgi.errors': sys.stderr,
             'wsgi.multithread': True,
@@ -57,10 +57,13 @@ class WSGIHTTPSession:
             }
 
         for k, v in self._http_request.get_decoded_header_fields():
-            ret['HTTP_{}'.format(k.upper())] = v
+            ret['HTTP_{}'.format(k.upper().replace('-', '_'))] = v
 
-        if 'HTTP_CONTENT-LENGTH' in ret:
-            ret['CONTENT_LENGTH'] = ret['HTTP_CONTENT-LENGTH']
+        if 'HTTP_CONTENT_LENGTH' in ret:
+            ret['CONTENT_LENGTH'] = ret['HTTP_CONTENT_LENGTH']
+
+        if ret['CONTENT_TYPE'] == '':
+            del ret['CONTENT_TYPE']
 
         return ret
 

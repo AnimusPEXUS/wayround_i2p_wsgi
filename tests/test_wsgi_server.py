@@ -1,4 +1,6 @@
 
+import pprint
+
 import org.wayround.wsgi.server
 
 
@@ -9,7 +11,9 @@ def a(e, s):
         [('Content-type', 'text/plain')]
         )
 
-    return [b'test']
+    res = "{}".format(pprint.pformat(e))
+
+    return [bytes(res, 'utf-8')]
 
 s = org.wayround.wsgi.server.CompleteServer(
     a
