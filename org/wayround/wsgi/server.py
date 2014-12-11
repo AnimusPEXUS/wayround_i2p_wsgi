@@ -12,7 +12,7 @@ import org.wayround.utils.socket_server
 
 class WSGIHTTPSession:
 
-    def __init__(self, http_request):
+    def __init__(self, http_request, encoding='utf-8'):
 
         if not isinstance(http_request, org.wayround.http.message.HTTPRequest):
             raise TypeError("invalid `http_request' type")
@@ -22,6 +22,8 @@ class WSGIHTTPSession:
         self.status = None
         self.response_headers = None
         self.exc_info = None
+
+        self._encoding = encoding
 
         return
 
@@ -39,16 +41,19 @@ class WSGIHTTPSession:
         input_ = self._http_request.sock.makefile('br')
 
         ret = {
-            'REQUEST_METHOD': str(self._http_request.method, 'utf-8'),
+            'REQUEST_METHOD': str(self._http_request.method, self._encoding),
             'SCRIPT_NAME': '',  # TODO
-            'PATH_INFO': str(parsed_requesttarget.path, 'utf-8'),
-            'QUERY_STRING': str(parsed_requesttarget.query, 'utf-8'),
+            'PATH_INFO': str(parsed_requesttarget.path, self._encoding),
+            'QUERY_STRING': str(parsed_requesttarget.query, self._encoding),
             'CONTENT_TYPE': '',  # TODO
             'SERVER_NAME': hostname,
             'SERVER_PORT': hostport,
-            'SERVER_PROTOCOL': str(self._http_request.httpversion, 'utf-8'),
+            'SERVER_PROTOCOL': str(
+                self._http_request.httpversion,
+                self._encoding
+                ),
             'wsgi.version': (1, 0),
-            'wsgi.url_scheme': str(parsed_requesttarget.scheme, 'utf-8'),
+            'wsgi.url_scheme': str(parsed_requesttarget.scheme, self._encoding),
             'wsgi.input': input_,
             'wsgi.errors': sys.stderr,
             'wsgi.multithread': True,
