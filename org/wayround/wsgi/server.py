@@ -79,7 +79,22 @@ class WSGIHTTPSession:
             exc_info=None
             ):
 
-        self.status = status
+        if not isinstance(status, str):
+            raise TypeError("response `status' must be str")
+
+        status_split = status.strip().split(' ')
+
+        if len(status_split) != 2:
+            raise ValueError(
+                "`status' must be in form of 'code_number reason_text'"
+                " (now it is `{}')".format(status)
+                )
+
+        status_code = int(status_split[0])
+        status_reason = status_split[1]
+
+        self.status = status_code
+        self.status_reason = status_reason
         self.response_headers = response_headers
         self.exc_info = exc_info
 
@@ -118,7 +133,8 @@ class WSGIServer:
         resp = org.wayround.http.message.HTTPResponse(
             whs.status,
             whs.response_headers,
-            iterator
+            iterator,
+            reasonphrase=whs.status_reason
             )
 
         return resp
