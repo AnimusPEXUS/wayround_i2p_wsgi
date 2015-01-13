@@ -25,6 +25,13 @@ class WSGIHTTPSession:
 
         self._encoding = encoding
 
+        self._input_ = http_request.sock.makefile('br')
+
+        self.start_response(
+            '500 Error',
+            [('Content-Type', 'text/plain;codepage=UTF-8')]
+            )
+
         return
 
     def format_environ(self):
@@ -38,7 +45,8 @@ class WSGIHTTPSession:
         hostname = sockaddr[0]
         hostport = str(sockaddr[1])
 
-        input_ = self._http_request.sock.makefile('br')
+        input_ = self._input_
+        #input_ = None
 
         ret = {
             'REQUEST_METHOD': str(self._http_request.method, self._encoding),
@@ -84,14 +92,14 @@ class WSGIHTTPSession:
 
         status_split = status.strip().split(' ')
 
-        if len(status_split) != 2:
+        if len(status_split) < 2:
             raise ValueError(
-                "`status' must be in form of 'code_number reason_text'"
+                "`status' must be in form of 'code_number reason text'"
                 " (now it is `{}')".format(status)
                 )
 
         status_code = int(status_split[0])
-        status_reason = status_split[1]
+        status_reason = ' '.join(status_split[1:])
 
         self.status = status_code
         self.status_reason = status_reason
@@ -136,6 +144,8 @@ class WSGIServer:
             iterator,
             reasonphrase=whs.status_reason
             )
+
+        whs._input_.close()
 
         return resp
 
