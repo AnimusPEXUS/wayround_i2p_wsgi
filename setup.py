@@ -3,17 +3,17 @@
 from setuptools import setup
 
 setup(
-    name='org_wayround_wsgi',
-    version='0.1',
+    name='wayround_org_wsgi',
+    version='0.2',
     description='wsgi server realisation',
     author='Alexey Gorshkov',
     author_email='animus@wayround.org',
-    url='https://github.com/AnimusPEXUS/org_wayround_wsgi',
+    url='https://github.com/AnimusPEXUS/wayround_org_wsgi',
     packages=[
-        'org.wayround.wsgi'
+        'wayround_org.wsgi'
         ],
     install_requires=[
-        'org_wayround_http'
+        'wayround_org_http'
         ],
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)'

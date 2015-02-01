@@ -5,16 +5,16 @@ import urllib.parse
 import socket
 import sys
 
-import org.wayround.http.message
-import org.wayround.http.server
-import org.wayround.utils.socket_server
+import wayround_org.http.message
+import wayround_org.http.server
+import wayround_org.utils.socket_server
 
 
 class WSGIHTTPSession:
 
     def __init__(self, http_request, encoding='utf-8'):
 
-        if not isinstance(http_request, org.wayround.http.message.HTTPRequest):
+        if not isinstance(http_request, wayround_org.http.message.HTTPRequest):
             raise TypeError("invalid `http_request' type")
 
         self._http_request = http_request
@@ -138,7 +138,7 @@ class WSGIServer:
             whs.start_response
             )
 
-        resp = org.wayround.http.message.HTTPResponse(
+        resp = wayround_org.http.message.HTTPResponse(
             whs.status,
             whs.response_headers,
             iterator,
@@ -172,13 +172,13 @@ class CompleteServer:
 
         self.wsgi_server = ws
 
-        hs = org.wayround.http.server.HTTPServer(
+        hs = wayround_org.http.server.HTTPServer(
             ws.callable_for_http_server
             )
 
         self.http_server = hs
 
-        ss = org.wayround.utils.socket_server.SocketServer(
+        ss = wayround_org.utils.socket_server.SocketServer(
             sock,
             hs.callable_for_socket_server
             )
