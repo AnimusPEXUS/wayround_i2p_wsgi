@@ -4,10 +4,11 @@ import logging
 import urllib.parse
 import socket
 import sys
+import time
 
 import wayround_org.http.message
 import wayround_org.http.server
-import wayround_org.utils.socket_server
+import wayround_org.socketserver.server
 
 
 class WSGIHTTPSession:
@@ -29,7 +30,9 @@ class WSGIHTTPSession:
 
         self.start_response(
             '500 Error',
-            [('Content-Type', 'text/plain;codepage=UTF-8')]
+            [
+                ('Content-Type', 'text/plain;codepage=UTF-8')
+                ]
             )
 
         return
@@ -163,7 +166,14 @@ class CompleteServer:
             address = ('127.0.0.1', 8080)
 
         sock = socket.socket()
-        sock.bind(address)
+        sock.setblocking(False)
+        try:
+            sock.bind(address)
+        except OSError as err:
+            if err.args[0] == 98:
+                print("Tryed to use address: {}".format(address))
+            raise
+
         sock.listen(listen_number)
 
         self.sock = sock
@@ -178,7 +188,7 @@ class CompleteServer:
 
         self.http_server = hs
 
-        ss = wayround_org.utils.socket_server.SocketServer(
+        ss = wayround_org.socketserver.server.SocketServer(
             sock,
             hs.callable_for_socket_server
             )
@@ -196,5 +206,18 @@ class CompleteServer:
         return
 
     def stop(self):
+        self.sock.shutdown(socket.SHUT_WR)
+        self.sock.close()
         self.socket_server.stop()
+        return
+
+    def wait_for_shutdown(self):
+        print("Waiting for user to press CTRL+C to start shutdown")
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("CTRL+C pressed - sutting down.. please wait..")
+        self.stop()
+        self.wait()
         return
