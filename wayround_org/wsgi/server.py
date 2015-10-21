@@ -123,7 +123,7 @@ class WSGIHTTPSession:
 
 class WSGIServer:
 
-    def __init__(self, func=None):
+    def __init__(self, func):
 
         if not callable(func):
             raise ValueError("`func' must be callable")
@@ -217,7 +217,7 @@ class CompleteServer:
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
-            print("CTRL+C pressed - sutting down.. please wait..")
+            print("CTRL+C pressed - shutting down.. please wait..")
         self.stop()
         self.wait()
         return
