@@ -13,10 +13,15 @@ import wayround_org.socketserver.server
 
 class WSGIHTTPSession:
 
-    def __init__(self, http_request, encoding='utf-8'):
+    def __init__(self, http_request, encoding='utf-8', PATH_INFO_mode='std'):
+
+        if PATH_INFO_mode not in ['std', 'unicode']:
+            ValueError("invalid value to `PATH_INFO_mode'")
 
         if not isinstance(http_request, wayround_org.http.message.HTTPRequest):
             raise TypeError("invalid `http_request' type")
+
+        self._PATH_INFO_mode = PATH_INFO_mode
 
         self._http_request = http_request
 
@@ -31,7 +36,9 @@ class WSGIHTTPSession:
         self.start_response(
             '500 Error',
             [
-                ('Content-Type', 'text/plain;codepage=UTF-8')
+                ('Content-Type', 'text/plain;codepage={}'.format(
+                    self._encoding.upper()
+                    ))
                 ]
             )
 
@@ -71,6 +78,10 @@ class WSGIHTTPSession:
             'wsgi.multiprocess': False,
             'wsgi.run_once': False,
             }
+
+        if self._PATH_INFO_mode == 'std':
+            ret['PATH_INFO'] = \
+                ret['PATH_INFO'].encode(self._encoding).decode('latin1')
 
         for k, v in self._http_request.get_decoded_header_fields():
             ret['HTTP_{}'.format(k.upper().replace('-', '_'))] = v
@@ -123,18 +134,35 @@ class WSGIHTTPSession:
 
 class WSGIServer:
 
-    def __init__(self, func):
+    def __init__(self, func, PATH_INFO_mode='std'):
+        """
+        PATH_INFO_mode - 'std' or 'unicode' - how to treat PATH_INFO value:
+            'std' - value of PATH_INFO must be passed to WSGI application
+                as str encoded as latin1
+            'unicode' - value of PATH_INFO must be passed as normal python3
+                str with notrmal text
+
+            please, see also explanations to PATH_INFO_mode param of
+                Carafe.Router.__init__ method
+        """
+
+        if PATH_INFO_mode not in ['std', 'unicode']:
+            ValueError("invalid value to `PATH_INFO_mode'")
 
         if not callable(func):
             raise ValueError("`func' must be callable")
 
         self._func = func
+        self._PATH_INFO_mode = PATH_INFO_mode
 
         return
 
     def callable_for_http_server(self, http_request):
 
-        whs = WSGIHTTPSession(http_request)
+        whs = WSGIHTTPSession(
+            http_request,
+            PATH_INFO_mode=self._PATH_INFO_mode
+            )
 
         iterator = self._func(
             whs.format_environ(),

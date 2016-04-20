@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='wayround_org_wsgi',
-    version='0.2',
+    version='0.3',
     description='wsgi server realisation',
     author='Alexey Gorshkov',
     author_email='animus@wayround.org',
