@@ -4,11 +4,11 @@ from setuptools import setup
 
 setup(
     name='wayround_org_wsgi',
-    version='0.3',
+    version='0.5',
     description='wsgi server realisation',
     author='Alexey Gorshkov',
     author_email='animus@wayround.org',
-    url='https://github.com/AnimusPEXUS/wayround_org_wsgi',
+    url='https://github.com/AnimusPEXUS/wayround_org_awsgi',
     packages=[
         'wayround_org.wsgi'
         ],

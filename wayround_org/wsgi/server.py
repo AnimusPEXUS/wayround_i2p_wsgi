@@ -13,15 +13,32 @@ import wayround_org.socketserver.server
 
 class WSGIHTTPSession:
 
-    def __init__(self, http_request, encoding='utf-8', PATH_INFO_mode='std'):
+    def __init__(
+            self,
+            http_request,
+            encoding='utf-8',
+
+            # do use modifications?
+            PATH_INFO_mode='std',
+            multiple_same_name_fields_mode='std',
+            add_http_request=False
+            ):
 
         if PATH_INFO_mode not in ['std', 'unicode']:
             ValueError("invalid value to `PATH_INFO_mode'")
+
+        if multiple_same_name_fields_mode not in ['std', 'list']:
+            ValueError("invalid value to `multiple_same_name_fields_mode'")
+
+        if not isinstance(add_http_request, bool):
+            raise TypeError("`add_http_request' must be bool")
 
         if not isinstance(http_request, wayround_org.http.message.HTTPRequest):
             raise TypeError("invalid `http_request' type")
 
         self._PATH_INFO_mode = PATH_INFO_mode
+        self._multiple_same_name_fields_mode = multiple_same_name_fields_mode
+        self._add_http_request = add_http_request
 
         self._http_request = http_request
 
@@ -59,6 +76,7 @@ class WSGIHTTPSession:
         #input_ = None
 
         ret = {
+            # ********** WSGI standard **********
             'REQUEST_METHOD': str(self._http_request.method, self._encoding),
             'SCRIPT_NAME': '',  # TODO
             'PATH_INFO': str(parsed_requesttarget.path, self._encoding),
@@ -74,17 +92,36 @@ class WSGIHTTPSession:
             'wsgi.url_scheme': str(parsed_requesttarget.scheme, self._encoding),
             'wsgi.input': input_,
             'wsgi.errors': sys.stderr,
-            'wsgi.multithread': True,
-            'wsgi.multiprocess': False,
-            'wsgi.run_once': False,
+            'wsgi.multithread': True,  # TODO
+            'wsgi.multiprocess': False,  # TODO
+            'wsgi.run_once': False,  # TODO
             }
+
+        if self._add_http_request:
+            ret['http.request'] = self._http_request
 
         if self._PATH_INFO_mode == 'std':
             ret['PATH_INFO'] = \
                 ret['PATH_INFO'].encode(self._encoding).decode('latin1')
 
         for k, v in self._http_request.get_decoded_header_fields():
-            ret['HTTP_{}'.format(k.upper().replace('-', '_'))] = v
+
+            key_name = 'HTTP_{}'.format(k.upper().replace('-', '_'))
+
+            if self._multiple_same_name_fields_mode == 'std':
+
+                ret[key_name] = v
+
+            elif self._multiple_same_name_fields_mode == 'list':
+
+                if not key_name in ret:
+                    ret[key_name] = v
+                else:
+                    if not isinstance(ret[key_name], list):
+                        ret[key_name] = [ret[key_name]]
+                    ret[key_name].append(v)
+
+            del key_name
 
         if 'HTTP_CONTENT_LENGTH' in ret:
             ret['CONTENT_LENGTH'] = ret['HTTP_CONTENT_LENGTH']
