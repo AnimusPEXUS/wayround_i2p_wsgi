@@ -171,7 +171,16 @@ class WSGIHTTPSession:
 
 class WSGIServer:
 
-    def __init__(self, func, PATH_INFO_mode='std'):
+    def __init__(
+        self,
+        func,
+
+        # do use modifications?
+        PATH_INFO_mode='std',
+        multiple_same_name_fields_mode='std',
+        add_http_request=False
+        ):
+        
         """
         PATH_INFO_mode - 'std' or 'unicode' - how to treat PATH_INFO value:
             'std' - value of PATH_INFO must be passed to WSGI application
@@ -186,11 +195,19 @@ class WSGIServer:
         if PATH_INFO_mode not in ['std', 'unicode']:
             ValueError("invalid value to `PATH_INFO_mode'")
 
+        if multiple_same_name_fields_mode not in ['std', 'list']:
+            ValueError("invalid value to `multiple_same_name_fields_mode'")
+
+        if not isinstance(add_http_request, bool):
+            raise TypeError("`add_http_request' must be bool")
+
         if not callable(func):
             raise ValueError("`func' must be callable")
 
         self._func = func
         self._PATH_INFO_mode = PATH_INFO_mode
+        self._multiple_same_name_fields_mode = multiple_same_name_fields_mode
+        self._add_http_request = add_http_request
 
         return
 
@@ -198,7 +215,9 @@ class WSGIServer:
 
         whs = WSGIHTTPSession(
             http_request,
-            PATH_INFO_mode=self._PATH_INFO_mode
+            PATH_INFO_mode=self._PATH_INFO_mode,
+            multiple_same_name_fields_mode=self._multiple_same_name_fields_mode,
+            add_http_request=self._add_http_request
             )
 
         iterator = self._func(
