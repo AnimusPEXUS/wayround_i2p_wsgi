@@ -61,7 +61,7 @@ class WSGIHTTPSession:
 
         return
 
-    def format_environ(self):
+    def render_environ(self):
 
         parsed_requesttarget = urllib.parse.urlparse(
             self._http_request.requesttarget
@@ -110,7 +110,15 @@ class WSGIHTTPSession:
 
             if self._multiple_same_name_fields_mode == 'std':
 
-                ret[key_name] = v
+                if not key_name in ret:
+                    ret[key_name] = v
+                else:
+                    if key_name == 'HTTP_COOKIE':
+                        ret[key_name] += '; {}'.format(v)
+                    else:
+                        # probably it's better to leave it as it is in unknown
+                        # case
+                        pass
 
             elif self._multiple_same_name_fields_mode == 'list':
 
@@ -120,6 +128,9 @@ class WSGIHTTPSession:
                     if not isinstance(ret[key_name], list):
                         ret[key_name] = [ret[key_name]]
                     ret[key_name].append(v)
+
+            else:
+                raise Exception("programming error")
 
             del key_name
 
@@ -175,12 +186,11 @@ class WSGIServer:
         self,
         func,
 
-        # do use modifications?
-        PATH_INFO_mode='std',
-        multiple_same_name_fields_mode='std',
-        add_http_request=False
-        ):
-        
+            # do use modifications?
+            PATH_INFO_mode='std',
+            multiple_same_name_fields_mode='std',
+            add_http_request=False
+            ):
         """
         PATH_INFO_mode - 'std' or 'unicode' - how to treat PATH_INFO value:
             'std' - value of PATH_INFO must be passed to WSGI application
@@ -221,7 +231,7 @@ class WSGIServer:
             )
 
         iterator = self._func(
-            whs.format_environ(),
+            whs.render_environ(),
             whs.start_response
             )
 
