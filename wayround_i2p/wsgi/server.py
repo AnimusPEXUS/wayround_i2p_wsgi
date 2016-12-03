@@ -6,9 +6,9 @@ import socket
 import sys
 import time
 
-import wayround_org.http.message
-import wayround_org.http.server
-import wayround_org.socketserver.server
+import wayround_i2p.http.message
+import wayround_i2p.http.server
+import wayround_i2p.socketserver.server
 
 
 class WSGIHTTPSession:
@@ -33,7 +33,7 @@ class WSGIHTTPSession:
         if not isinstance(add_http_request, bool):
             raise TypeError("`add_http_request' must be bool")
 
-        if not isinstance(http_request, wayround_org.http.message.HTTPRequest):
+        if not isinstance(http_request, wayround_i2p.http.message.HTTPRequest):
             raise TypeError("invalid `http_request' type")
 
         self._PATH_INFO_mode = PATH_INFO_mode
@@ -235,7 +235,7 @@ class WSGIServer:
             whs.start_response
             )
 
-        resp = wayround_org.http.message.HTTPResponse(
+        resp = wayround_i2p.http.message.HTTPResponse(
             whs.status,
             whs.response_headers,
             iterator,
@@ -276,13 +276,13 @@ class CompleteServer:
 
         self.wsgi_server = ws
 
-        hs = wayround_org.http.server.HTTPServer(
+        hs = wayround_i2p.http.server.HTTPServer(
             ws.callable_for_http_server
             )
 
         self.http_server = hs
 
-        ss = wayround_org.socketserver.server.SocketServer(
+        ss = wayround_i2p.socketserver.server.SocketServer(
             sock,
             hs.callable_for_socket_server
             )

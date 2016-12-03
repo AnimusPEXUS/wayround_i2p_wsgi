@@ -2,7 +2,7 @@
 import pprint
 import urllib.parse
 
-import wayround_org.wsgi.server
+import wayround_i2p.wsgi.server
 
 
 def a(e, s):
@@ -29,7 +29,7 @@ qs:
 
     return [bytes(res, 'utf-8')]
 
-s = wayround_org.wsgi.server.CompleteServer(
+s = wayround_i2p.wsgi.server.CompleteServer(
     a
     )
 
